@@ -2,7 +2,8 @@ defmodule InvoiceCake.BuyerInfo do
   @default_country "VN"
 
   @supported_countries [
-    "VN"
+    "VN",
+    "ID"
   ]
 
   alias InvoiceCake.BuyerInfo.Country

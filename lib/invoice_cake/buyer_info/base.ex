@@ -60,8 +60,12 @@ defmodule InvoiceCake.BuyerInfo.Base do
       def validate(buyer_info),
         do: raise(ArgumentError, "expected map, got #{inspect(buyer_info)}")
 
+      defp cross_validate(_kind, validated), do: {:ok, validated}
+      defoverridable cross_validate: 2
+
       defp do_validate(%{"is_personal" => is_personal} = buyer_info)
            when is_boolean(is_personal) do
+        kind = if is_personal, do: :personal, else: :company
         fields = if is_personal, do: unquote(personal), else: unquote(company)
 
         Enum.reduce_while(fields, %{}, fn {name, type, opts}, acc ->
@@ -75,10 +79,10 @@ defmodule InvoiceCake.BuyerInfo.Base do
             error
 
           validated ->
-            {:ok,
-             validated
-             |> Field.reject_empty_fields()
-             |> Map.put("is_personal", is_personal)}
+            validated
+            |> Field.reject_empty_fields()
+            |> Map.put("is_personal", is_personal)
+            |> then(&cross_validate(kind, &1))
         end
       end
 
