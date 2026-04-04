@@ -12,9 +12,7 @@ defmodule InvoiceCake.MixProject do
   end
 
   def application do
-    [
-      extra_applications: [:logger]
-    ]
+    []
   end
 
   defp deps do
