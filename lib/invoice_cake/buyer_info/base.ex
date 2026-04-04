@@ -5,7 +5,6 @@ defmodule InvoiceCake.BuyerInfo.Base do
     quote do
       @moduledoc false
       import InvoiceCake.BuyerInfo.Base, only: [personal: 1, company: 1, field: 2, field: 3]
-      import InvoiceCake.Guards, only: [is_empty: 1]
 
       Module.register_attribute(__MODULE__, :personal_fields, accumulate: true)
       Module.register_attribute(__MODULE__, :company_fields, accumulate: true)
@@ -53,14 +52,16 @@ defmodule InvoiceCake.BuyerInfo.Base do
     quote do
       def validate(buyer_info) when is_map(buyer_info) do
         if atom = Enum.find(buyer_info, fn {key, _} -> is_atom(key) end),
-          do: raise(ArgumentError, "expected map with string keys, got atom key: #{inspect(atom)}"),
+          do:
+            raise(ArgumentError, "expected map with string keys, got atom key: #{inspect(atom)}"),
           else: do_validate(buyer_info)
       end
 
       def validate(buyer_info),
         do: raise(ArgumentError, "expected map, got #{inspect(buyer_info)}")
 
-      defp do_validate(%{"is_personal" => is_personal} = buyer_info) do
+      defp do_validate(%{"is_personal" => is_personal} = buyer_info)
+           when is_boolean(is_personal) do
         fields = if is_personal, do: unquote(personal), else: unquote(company)
 
         Enum.reduce_while(fields, %{}, fn {name, type, opts}, acc ->
@@ -70,8 +71,14 @@ defmodule InvoiceCake.BuyerInfo.Base do
           end
         end)
         |> case do
-          {:error, _} = error -> error
-          validated -> {:ok, Field.reject_empty_fields(validated)}
+          {:error, _} = error ->
+            error
+
+          validated ->
+            {:ok,
+             validated
+             |> Field.reject_empty_fields()
+             |> Map.put("is_personal", is_personal)}
         end
       end
 
