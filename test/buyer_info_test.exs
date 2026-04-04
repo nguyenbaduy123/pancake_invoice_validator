@@ -13,12 +13,16 @@ defmodule InvoiceCake.BuyerInfoTest do
       assert {:error, "unsupported country: XX"} = BuyerInfo.validate(%{}, "XX")
     end
 
-    test "returns ok nil for nil input" do
-      assert {:ok, nil} = BuyerInfo.validate(nil)
+    test "raises on nil input" do
+      assert_raise ArgumentError, ~r/expected map/, fn ->
+        BuyerInfo.validate(nil)
+      end
     end
 
-    test "returns ok nil for non-map input" do
-      assert {:ok, nil} = BuyerInfo.validate("not a map")
+    test "raises on non-map input" do
+      assert_raise ArgumentError, ~r/expected map/, fn ->
+        BuyerInfo.validate("not a map")
+      end
     end
   end
 
@@ -202,6 +206,62 @@ defmodule InvoiceCake.BuyerInfoTest do
       }
 
       assert {:error, "email is invalid, regex: " <> _} = BuyerInfo.validate(buyer)
+    end
+  end
+
+  describe "VN type checking" do
+    test "rejects non-string name" do
+      buyer = %{"is_personal" => true, "name" => 123, "id_number" => "079302123456"}
+      assert {:error, "invalid name type, expected string"} = BuyerInfo.validate(buyer)
+    end
+
+    test "rejects non-string id_number" do
+      buyer = %{"is_personal" => true, "name" => "Duy", "id_number" => 12345}
+      assert {:error, "invalid id_number type, expected string"} = BuyerInfo.validate(buyer)
+    end
+
+    test "rejects non-string email" do
+      buyer = %{
+        "is_personal" => true,
+        "name" => "Duy",
+        "id_number" => "079302123456",
+        "email" => 123
+      }
+
+      assert {:error, "invalid email type, expected string"} = BuyerInfo.validate(buyer)
+    end
+
+    test "rejects non-string address" do
+      buyer = %{
+        "is_personal" => true,
+        "name" => "Duy",
+        "id_number" => "079302123456",
+        "address" => 456
+      }
+
+      assert {:error, "invalid address type, expected string"} = BuyerInfo.validate(buyer)
+    end
+
+    test "rejects non-string tax_code" do
+      buyer = %{
+        "is_personal" => false,
+        "tax_code" => 123,
+        "company_name" => "ACME",
+        "address" => "456 Street"
+      }
+
+      assert {:error, "invalid tax_code type, expected string"} = BuyerInfo.validate(buyer)
+    end
+
+    test "rejects non-string company_name" do
+      buyer = %{
+        "is_personal" => false,
+        "tax_code" => "0123456789",
+        "company_name" => 999,
+        "address" => "456 Street"
+      }
+
+      assert {:error, "invalid company_name type, expected string"} = BuyerInfo.validate(buyer)
     end
   end
 

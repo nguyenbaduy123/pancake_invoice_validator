@@ -31,14 +31,14 @@ defmodule InvoiceCake.BuyerInfo.Base do
     end
   end
 
-  defmacro field(name, _type, opts \\ []) do
+  defmacro field(name, type, opts \\ []) do
     quote do
       @current_target || raise("field/3 must be called inside a `personal` or `company` block")
 
       Module.put_attribute(
         __MODULE__,
         :"#{@current_target}_fields",
-        {unquote(name), unquote(opts)}
+        {unquote(name), unquote(type), unquote(opts)}
       )
     end
   end
@@ -63,8 +63,8 @@ defmodule InvoiceCake.BuyerInfo.Base do
       defp do_validate(%{"is_personal" => is_personal} = buyer_info) do
         fields = if is_personal, do: unquote(personal), else: unquote(company)
 
-        Enum.reduce_while(fields, %{}, fn {name, opts}, acc ->
-          case Field.validate(buyer_info[name], name, opts) do
+        Enum.reduce_while(fields, %{}, fn {name, type, opts}, acc ->
+          case Field.validate(name, type, buyer_info[name], opts) do
             :ok -> {:cont, Map.put(acc, name, buyer_info[name])}
             error -> {:halt, error}
           end
