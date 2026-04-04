@@ -3,7 +3,7 @@ defmodule InvoiceCake.MixProject do
 
   def project do
     [
-      app: :invoice_cake,
+      app: :pancake_invoice_validator,
       version: "0.1.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
