@@ -10,12 +10,14 @@ defmodule InvoiceCake.BuyerInfo.IDTest do
       buyer = %{
         "is_personal" => true,
         "name" => "Budi Santoso",
-        "address" => "Jl. Sudirman No. 1, Jakarta"
+        "address" => "Jl. Sudirman No. 1, Jakarta",
+        "email" => "budi@example.com"
       }
 
       assert {:ok, validated} = BuyerInfo.validate(buyer, @country)
       assert validated["name"] == "Budi Santoso"
       assert validated["address"] == "Jl. Sudirman No. 1, Jakarta"
+      assert validated["email"] == "budi@example.com"
     end
 
     test "valid personal invoice with all fields" do
@@ -98,9 +100,22 @@ defmodule InvoiceCake.BuyerInfo.IDTest do
       assert {:ok, _} = BuyerInfo.validate(buyer, @country)
     end
 
-    test "optional fields can be omitted" do
+    test "requires phone_number or email when both absent" do
       buyer = %{"is_personal" => true, "name" => "Budi", "address" => "Jakarta"}
-      assert {:ok, _} = BuyerInfo.validate(buyer, @country)
+
+      assert {:error, "phone_number or email is required"} = BuyerInfo.validate(buyer, @country)
+    end
+
+    test "valid personal with email only (no phone_number)" do
+      buyer = %{
+        "is_personal" => true,
+        "name" => "Budi",
+        "address" => "Jakarta",
+        "email" => "budi@example.com"
+      }
+
+      assert {:ok, validated} = BuyerInfo.validate(buyer, @country)
+      refute Map.has_key?(validated, "phone_number")
     end
 
     test "strips unknown fields" do
@@ -108,6 +123,7 @@ defmodule InvoiceCake.BuyerInfo.IDTest do
         "is_personal" => true,
         "name" => "Budi",
         "address" => "Jakarta",
+        "email" => "budi@example.com",
         "unknown" => "should be removed"
       }
 
@@ -292,11 +308,13 @@ defmodule InvoiceCake.BuyerInfo.IDTest do
         "is_personal" => true,
         "name" => "Budi",
         "address" => "Jakarta",
-        "email" => ""
+        "email" => "",
+        "phone_number" => "+6281234567890"
       }
 
       assert {:ok, validated} = BuyerInfo.validate(buyer, @country)
       refute Map.has_key?(validated, "email")
+      assert validated["phone_number"] == "+6281234567890"
     end
   end
 end

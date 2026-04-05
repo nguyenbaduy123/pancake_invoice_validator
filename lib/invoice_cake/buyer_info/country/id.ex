@@ -21,6 +21,10 @@ defmodule InvoiceCake.BuyerInfo.Country.ID do
     field("phone_number", :string, regex: @regex_phone_number)
   end
 
+  defp cross_validate(:personal, validated)
+       when not is_map_key(validated, "phone_number") and not is_map_key(validated, "email"),
+       do: {:error, "phone_number or email is required"}
+
   defp cross_validate(:company, %{"pkp_status" => "yes"} = validated) do
     if !Map.get(validated, "npwp"),
       do: {:error, "npwp is required when pkp_status is yes"},
