@@ -134,17 +134,30 @@ defmodule InvoiceCake.ProductInfoTest do
       assert {:error, "quantity must be a number"} = ProductInfo.validate(items)
     end
 
-    test "rejects float quantity" do
+    test "accepts float quantity" do
       items = [%{"name" => "S", "total_amount_without_tax" => 100, "quantity" => 2.5}]
-      assert {:error, "quantity must be a number"} = ProductInfo.validate(items)
+      assert {:ok, _} = ProductInfo.validate(items)
     end
 
-    test "rejects non-integer unit_price" do
+    test "rejects non-number unit_price" do
       items = [
         %{"name" => "S", "total_amount_without_tax" => 100, "quantity" => 1, "unit_price" => "10"}
       ]
 
       assert {:error, "unit_price must be a number"} = ProductInfo.validate(items)
+    end
+
+    test "accepts float unit_price" do
+      items = [
+        %{
+          "name" => "S",
+          "total_amount_without_tax" => 99.9,
+          "quantity" => 1,
+          "unit_price" => 99.9
+        }
+      ]
+
+      assert {:ok, _} = ProductInfo.validate(items)
     end
 
     test "rejects non-number total_amount_without_tax" do
@@ -159,19 +172,9 @@ defmodule InvoiceCake.ProductInfoTest do
       assert {:error, "unit_price must come with quantity"} = ProductInfo.validate(items)
     end
 
-    test "rejects mismatched total_amount_without_tax" do
+    test "accepts unit_price with quantity regardless of total" do
       items = [
         %{"name" => "S", "total_amount_without_tax" => 999, "quantity" => 2, "unit_price" => 100}
-      ]
-
-      assert {:error,
-              "if provide unit_price, total_amount_without_tax must be equal to unit_price * quantity"} =
-               ProductInfo.validate(items)
-    end
-
-    test "accepts matching total_amount_without_tax = unit_price * quantity" do
-      items = [
-        %{"name" => "S", "total_amount_without_tax" => 200, "quantity" => 2, "unit_price" => 100}
       ]
 
       assert {:ok, _} = ProductInfo.validate(items)
@@ -179,6 +182,19 @@ defmodule InvoiceCake.ProductInfoTest do
 
     test "allows quantity without unit_price" do
       items = [%{"name" => "S", "total_amount_without_tax" => 100, "quantity" => 3}]
+      assert {:ok, _} = ProductInfo.validate(items)
+    end
+
+    test "accepts float unit_price with float quantity" do
+      items = [
+        %{
+          "name" => "S",
+          "total_amount_without_tax" => 49.95,
+          "quantity" => 3.5,
+          "unit_price" => 16.65
+        }
+      ]
+
       assert {:ok, _} = ProductInfo.validate(items)
     end
   end

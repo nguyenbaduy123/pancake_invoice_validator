@@ -28,19 +28,14 @@ defmodule InvoiceCake.ProductInfo do
       length(missing_fields) > 0 ->
         {:error, "Missing required fields in item: #{Enum.join(missing_fields, ", ")}"}
 
-      item["quantity"] && !is_integer(item["quantity"]) ->
+      item["quantity"] && !is_number(item["quantity"]) ->
         {:error, "quantity must be a number"}
 
-      item["unit_price"] && !is_integer(item["unit_price"]) ->
+      item["unit_price"] && !is_number(item["unit_price"]) ->
         {:error, "unit_price must be a number"}
 
       item["unit_price"] && !item["quantity"] ->
         {:error, "unit_price must come with quantity"}
-
-      is_integer(item["total_amount_without_tax"]) && is_integer(item["unit_price"]) &&
-          item["total_amount_without_tax"] != item["unit_price"] * item["quantity"] ->
-        {:error,
-         "if provide unit_price, total_amount_without_tax must be equal to unit_price * quantity"}
 
       !is_number(item["total_amount_without_tax"]) ->
         {:error, "total_amount_without_tax must be a number"}
