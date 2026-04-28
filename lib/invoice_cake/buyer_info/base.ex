@@ -97,7 +97,7 @@ defmodule InvoiceCake.BuyerInfo.Base do
             validated
             |> Field.reject_empty_fields()
             |> Map.put("is_personal", is_personal)
-            |> then(&cross_validate(kind, &1))
+            |> (&cross_validate(kind, &1)).()
         end
       end
 

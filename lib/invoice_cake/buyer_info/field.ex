@@ -35,7 +35,8 @@ defmodule InvoiceCake.BuyerInfo.Field do
     defp regex_hint(_regex), do: ""
   end
 
-  def reject_empty_fields(info), do: Map.reject(info, fn {_key, value} -> is_empty(value) end)
+  def reject_empty_fields(info),
+    do: Enum.reject(info, fn {_key, value} -> is_empty(value) end) |> Map.new()
 
   for {type, check} <- @type_checks do
     defp check_type(unquote(type), value), do: unquote(check).(value)
