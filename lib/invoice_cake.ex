@@ -1,2 +1,0 @@
-defmodule InvoiceCake do
-end
